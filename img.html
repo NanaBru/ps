@@ -1,47 +1,140 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Visor 360° - Barbería</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css" />
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0d1117;
+        }
+
         #panorama {
             position: absolute;
             top: 0;
             left: 0;    
             width: 100%;
             height: 100vh;
-            /* Ajusta la altura a tu gusto */
-           
-           
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 1;
         }
 
-        
+        /* Barra de controles flotante */
+        .controls-bar {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            gap: 12px;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 10px 16px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-select {
+            background: rgba(255, 255, 255, 0.08);
+            color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-select:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-select.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: #ffffff;
+            border-color: #60a5fa;
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-select svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
     </style>
 </head>
 
 <body>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css" />
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
-
-    <div class="container-360">
-        
-        <div id="panorama"></div>
+    <!-- Barra de selección de imágenes -->
+    <div class="controls-bar">
+        <button id="btn-papa" class="btn-select active" onclick="loadPanorama('papa.jpg', 'btn-papa')">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+            Imagen: papa.jpg
+        </button>
+        <button id="btn-papa222" class="btn-select" onclick="loadPanorama('papa222.jpg', 'btn-papa222')">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+            Imagen: papa222.jpg
+        </button>
     </div>
 
-    <script>
-        pannellum.viewer('panorama', {
-            "type": "equirectangular",
-            "panorama": "papa2.jpg", // <--- Nombre de tu archivo de imagen
-            "autoLoad": true,              // Carga automáticamente
-            "autoRotate": -2,              // Gira sola lentamente para llamar la atención
-            /* "title": "Nuestra Barbería",
-            "author": "Elite Barber", */
-            "hfov": 100,                  // Campo de visión (zoom) inicial
-            "showFullscreenCtrl": true     // Permite ver en pantalla completa
+    <!-- Contenedor del visor 360 -->
+    <div id="panorama"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+
+    <script>
+        let viewer = null;
+
+        function loadPanorama(imagePath, activeBtnId) {
+            // Actualizar estado de los botones UI
+            document.querySelectorAll('.btn-select').forEach(btn => btn.classList.remove('active'));
+            if (activeBtnId) {
+                document.getElementById(activeBtnId).classList.add('active');
+            }
+
+            // Destruir el visor anterior si existe
+            if (viewer) {
+                try { viewer.destroy(); } catch(e) {}
+                viewer = null;
+            }
+
+            // Crear nuevo visor Pannellum con cobertura 360x180 completa
+            viewer = pannellum.viewer('panorama', {
+                "type": "equirectangular",
+                "panorama": imagePath,
+                "autoLoad": true,
+                "autoRotate": -2,
+                "hfov": 100,
+                "vaov": 180,
+                "haov": 360,
+                "showFullscreenCtrl": true
+            });
+        }
+
+        // Cargar por defecto la primera imagen
+        window.addEventListener('DOMContentLoaded', () => {
+            loadPanorama('papa.jpg', 'btn-papa');
         });
     </script>
 </body>
